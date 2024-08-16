@@ -1,0 +1,20 @@
+# Spacefile Docs: https://go.deta.dev/docs/spacefile/v0
+v: 0
+micros:
+  - name: pkms-main
+    src: ./
+    engine: nodejs16
+    primary: true
+    commands:
+      - npm ci --production
+    run: node server.js
+    dev: node server.js
+    public: true
+    presets:
+      env:
+        - name: MONGO_URI
+          default: ""
+        - name: USER
+          default: ""
+        - name: PASSWORD
+          default: ""
