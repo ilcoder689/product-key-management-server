@@ -1,0 +1,3 @@
+RewriteEngine On
+# RewriteCond %{REQUEST_URI} !^/reverse_proxy.php
+RewriteRule ^(.*)$ /reverse_proxy.php [L,QSA]
