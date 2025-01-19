@@ -127,6 +127,25 @@ const dbOperations = {
   },
 };
 
+function istToUtc(ist) {
+  return new Date(ist + "+05:30")
+    .toISOString()
+    .replace("T", " ")
+    .replace("Z", "");
+}
+
+// function utcToIst(utc) {
+//   return new Date(utc + "Z").toISOString().replace("T", " ").replace("Z", "");
+// }
+
+function dbToUtc(dbt) {
+  return new Date(dbt + "Z");
+}
+
+function utcToDb(utc) {
+  return new Date().toISOString().replace("T", " ").replace("Z", "");
+}
+
 // Add product key
 app.post("/product-keys", authenticate, async (req, res) => {
   let { key, maxActivations, startDate, expiryDate } = req.body;
@@ -137,16 +156,10 @@ app.post("/product-keys", authenticate, async (req, res) => {
     }
 
     // Store as UTC date in DB
-    startDate = new Date(startDate)
-      .toISOString()
-      .replace("T", " ")
-      .replace("Z", "");
+    startDate = istToUtc(startDate);
 
     // Store as UTC date in DB
-    expiryDate = new Date(expiryDate)
-      .toISOString()
-      .replace("T", " ")
-      .replace("Z", "");
+    expiryDate = istToUtc(expiryDate);
 
     await dbOperations.addProductKey(
       key,
@@ -186,10 +199,10 @@ app.post("/product-keys/validate", async (req, res) => {
   try {
     const productKey = await dbOperations.fetchProductKey(key);
 
-    if (new Date(productKey.expiry_date) < new Date())
+    if (dbToUtc(productKey.expiry_date) < new Date())
       throw new Error("Product key expired");
 
-    if (new Date(productKey.start_date) > new Date())
+    if (dbToUtc(productKey.start_date) > new Date())
       throw new Error("Product key not yet active");
 
     if (!productKey.activations[installationId]) {
@@ -198,7 +211,7 @@ app.post("/product-keys/validate", async (req, res) => {
       ) {
         throw new Error("Maximum activations reached");
       } else {
-        productKey.activations[installationId] = new Date().toISOString();
+        productKey.activations[installationId] = utcToDb();
       }
     }
 
@@ -211,9 +224,7 @@ app.post("/product-keys/validate", async (req, res) => {
     }
 
     if (Object.keys(productKey.activations).length == 1) {
-      productKey.activation_date = productKey.activations[installationId]
-        .replace("T", " ")
-        .replace("Z", "");
+      productKey.activation_date = productKey.activations[installationId];
     }
 
     await dbOperations.updateProductKey(key, {
@@ -255,17 +266,9 @@ app.put("/product-keys/:key", authenticate, async (req, res) => {
 
     const updates = {};
     if (maxActivations) updates.max_activations = maxActivations;
-    if (startDate)
-      updates.start_date = new Date(startDate)
-        .toISOString()
-        .replace("T", " ")
-        .replace("Z", "");
+    if (startDate) updates.start_date = istToUtc(startDate);
     if (users) updates.users = users;
-    if (expiryDate)
-      updates.expiry_date = new Date(expiryDate)
-        .toISOString()
-        .replace("T", " ")
-        .replace("Z", "");
+    if (expiryDate) updates.expiry_date = istToUtc(expiryDate);
 
     if (startDate && expiryDate && new Date(startDate) > new Date(expiryDate)) {
       throw new Error("Start date must be less than expiry date");
