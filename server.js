@@ -11,12 +11,15 @@ app.use(express.static("public"));
 const cors = require("cors");
 app.use(cors());
 
+const MAX_USERS_PER_PRODUCT_KEY = 1;
+
 // MySQL Configuration
 const mysqlConfig = {
   host: process.env.MYSQL_HOST || "localhost",
   user: process.env.MYSQL_USER || "root",
   password: process.env.MYSQL_PASSWORD || "",
   database: process.env.MYSQL_DB || "ases_pkms",
+  timezone: "Z",
 };
 const user = process.env.USER || "admin";
 const pass = process.env.PASSWORD || "admin";
@@ -126,9 +129,21 @@ const dbOperations = {
 
 // Add product key
 app.post("/product-keys", authenticate, async (req, res) => {
-  const { key, maxActivations, startDate, expiryDate } = req.body;
+  let { key, maxActivations, startDate, expiryDate } = req.body;
   // const startDate = req
   // const expiryDate = new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000);
+
+  // Store as UTC date in DB
+  startDate = new Date(startDate)
+    .toISOString()
+    .replace("T", " ")
+    .replace("Z", "");
+
+  // Store as UTC date in DB
+  expiryDate = new Date(expiryDate)
+    .toISOString()
+    .replace("T", " ")
+    .replace("Z", "");
 
   try {
     await dbOperations.addProductKey(
@@ -150,7 +165,7 @@ app.post("/product-keys/:key/users", authenticate, async (req, res) => {
 
   try {
     const productKey = await dbOperations.fetchProductKey(key);
-    if (!productKey.users.includes(productKey)) {
+    if (!productKey.users.includes(userId)) {
       productKey.users.push(userId);
     }
     await dbOperations.updateProductKey(key, {
@@ -164,7 +179,7 @@ app.post("/product-keys/:key/users", authenticate, async (req, res) => {
 
 // Validate product key
 app.post("/product-keys/validate", async (req, res) => {
-  const { key, installationId } = req.body;
+  const { key, installationId, userId } = req.body;
 
   try {
     const productKey = await dbOperations.fetchProductKey(key);
@@ -172,30 +187,42 @@ app.post("/product-keys/validate", async (req, res) => {
     if (new Date(productKey.expiry_date) < new Date())
       throw new Error("Product key expired");
 
-    if (productKey.activations[installationId]) {
-      return res.json({ valid: true, message: "Product key validated" });
+    if (new Date(productKey.start_date) > new Date())
+      throw new Error("Product key not yet active");
+
+    if (!productKey.activations[installationId]) {
+      if (
+        Object.keys(productKey.activations).length >= productKey.maxActivations
+      ) {
+        throw new Error("Maximum activations reached");
+      } else {
+        productKey.activations[installationId] = new Date().toISOString();
+      }
     }
 
-    if (
-      Object.keys(productKey.activations).length >= productKey.maxActivations
-    ) {
-      throw new Error("Maximum activations reached");
+    if (userId && !productKey.users.includes(userId)) {
+      if (productKey.users.length >= MAX_USERS_PER_PRODUCT_KEY) {
+        throw new Error("Maximum users linked to product key.");
+      } else {
+        productKey.users.push(userId);
+      }
     }
 
-    productKey.activations[installationId] = new Date().toISOString();
     if (Object.keys(productKey.activations).length == 1) {
       productKey.activation_date = productKey.activations[installationId]
         .replace("T", " ")
         .replace("Z", "");
     }
+
     await dbOperations.updateProductKey(key, {
       activation_date: productKey.activation_date,
       activations: JSON.stringify(productKey.activations),
+      users: JSON.stringify(productKey.users),
     });
 
     res.json({ valid: true, message: "Product key validated" });
   } catch (err) {
-    res.status(400).json({ error: true, message: err.message });
+    res.status(400).json({ valid: false, error: true, message: err.message });
   }
 });
 
