@@ -19,7 +19,7 @@ const mysqlConfig = {
   user: process.env.MYSQL_USER || "root",
   password: process.env.MYSQL_PASSWORD || "",
   database: process.env.MYSQL_DB || "ases_pkms",
-  timezone: "Z",
+  timezone: "+00:00",
 };
 const user = process.env.USER || "admin";
 const pass = process.env.PASSWORD || "admin";
@@ -139,7 +139,7 @@ function istToUtc(ist) {
 // }
 
 function dbToUtc(dbt) {
-  return new Date(dbt + "Z");
+  return new Date(dbt);
 }
 
 function utcToDb(utc) {
