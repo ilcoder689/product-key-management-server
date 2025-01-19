@@ -239,6 +239,48 @@
           <button type="submit">Update Product Key</button>
         </form>
 
+        <h2>Validate Product Keys</h2>
+        <form id="validateProductKeyForm">
+          <label for="validateProductKey">Product Key</label>
+          <input
+            type="text"
+            id="validateProductKey"
+            placeholder="Enter product key to validate"
+            required
+          />
+
+          <label for="validateInstallationId">Installation ID</label>
+          <input
+            type="text"
+            id="validateInstallationId"
+            placeholder="Enter new Installation ID"
+            required
+          />
+
+          <label for="validateUserId">User ID</label>
+          <input type="text" id="validateUserId" placeholder="User ID" />
+          <button type="submit">Validate Product Key</button>
+        </form>
+
+        <h2>Validate User Product Keys</h2>
+        <form id="validateUserProductKeyForm">
+          <label for="validateUserProductKey">Product Key</label>
+          <input
+            type="text"
+            id="validateUserProductKey"
+            placeholder="Enter product key to validate"
+          />
+
+          <label for="validateUserUserId">User ID</label>
+          <input
+            type="text"
+            id="validateUserUserId"
+            placeholder="User ID"
+            required
+          />
+          <button type="submit">Validate Product Key</button>
+        </form>
+
         <h2>Product Keys List</h2>
         <button id="listKeysButton" onclick="listProductKeys(true)">
           Refresh List
@@ -285,11 +327,12 @@
       const userModal = document.getElementById("userModal");
       const closeModalButton = document.getElementById("closeModalButton");
       const toast = document.getElementById("toast");
-
+      let timeout = null;
       function displayMessage(message, isError = false) {
+        if (timeout) clearTimeout(timeout);
         toast.textContent = message;
         toast.className = `toast show ${isError ? "error" : "success"}`;
-        setTimeout(() => {
+        timeout = setTimeout(() => {
           toast.className = "toast";
         }, 3000);
       }
@@ -394,6 +437,50 @@
             displayMessage("Product key updated successfully");
             listProductKeys();
           } catch {}
+        });
+
+      document
+        .getElementById("validateProductKeyForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const key = document.getElementById("validateProductKey").value;
+          const installationId = document.getElementById(
+            "validateInstallationId"
+          ).value;
+          const userId = document.getElementById("validateUserId").value;
+          try {
+            const result = await handleRequest(
+              `/product-keys/validate`,
+              getFetchOptions("POST", { key, installationId, userId })
+            );
+            if (result.valid) {
+              displayMessage("Product key is valid.");
+            } else {
+              displayMessage("Product key is invalid.", true);
+            }
+            listProductKeys();
+          } catch (e) {}
+        });
+
+      document
+        .getElementById("validateUserProductKeyForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const key = document.getElementById("validateUserProductKey").value;
+          const userId = document.getElementById("validateUserUserId").value;
+          console.log(key, userId);
+
+          try {
+            const result = await handleRequest(
+              `/product-keys/validate/user`,
+              getFetchOptions("POST", { key, userId })
+            );
+            if (result.valid) {
+              displayMessage("Product key is valid.");
+            } else {
+              displayMessage("Product key is invalid.", true);
+            }
+          } catch (e) {}
         });
 
       async function listProductKeys(showToast = false) {
