@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Product Key Management</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      h1 {
+        color: #333;
+      }
+      form {
+        margin-bottom: 20px;
+      }
+      input,
+      button {
+        padding: 8px 12px;
+        margin: 4px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 8px;
+      }
+      th {
+        background-color: #f4f4f4;
+      }
+      tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
+      .actions-button {
+        cursor: pointer;
+        color: #007bff;
+        background: none;
+        border: none;
+        padding: 0;
+        font: inherit;
+      }
+      .error-message {
+        color: red;
+        font-weight: bold;
+      }
+      .success-message {
+        color: green;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Product Key Management</h1>
+
+    <div id="authSection">
+      <h2>Login</h2>
+      <form id="loginForm">
+        <input type="text" id="username" placeholder="Username" required />
+        <input type="password" id="password" placeholder="Password" required />
+        <button type="submit">Login</button>
+      </form>
+    </div>
+    <button id="logoutButton">Logout</button>
+
+    <div id="messageContainer"></div>
+
+    <!-- Forms for managing product keys -->
+    <h2>Manage Product Keys</h2>
+    <form id="addProductKeyForm">
+      <input type="text" id="productKey" placeholder="Product Key" required />
+      <input
+        type="number"
+        id="maxActivations"
+        placeholder="Max Activations"
+        required
+      />
+      <input type="number" id="expiryDays" placeholder="Expiry Days" required />
+      <button type="submit">Add Product Key</button>
+    </form>
+
+    <form id="updateProductKeyForm">
+      <input
+        type="text"
+        id="updateProductKey"
+        placeholder="Product Key"
+        required
+      />
+      <input
+        type="number"
+        id="updateMaxActivations"
+        placeholder="Max Activations"
+      />
+      <input type="number" id="updateExpiryDays" placeholder="Expiry Days" />
+      <button type="submit">Update Product Key</button>
+    </form>
+
+    <form id="validateProductKeyForm">
+      <input
+        type="text"
+        id="validateProductKey"
+        placeholder="Product Key"
+        required
+      />
+      <input
+        type="text"
+        id="installationId"
+        placeholder="Installation ID"
+        required
+      />
+      <button type="submit">Validate Product Key</button>
+    </form>
+
+    <h2>Product Keys List</h2>
+    <button id="listKeysButton" onclick="listProductKeys()">
+      Refresh List
+    </button>
+    <table id="productKeysTable">
+      <thead>
+        <tr>
+          <th>Product Key</th>
+          <th>Max Activations</th>
+          <th>Expiry Date</th>
+          <th>Activations</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="productKeysList">
+        <!-- Data will be inserted here by JavaScript -->
+      </tbody>
+    </table>
+
+    <script>
+      // Utility function to handle errors and alerts
+      function displayError(message) {
+        alert(`Error: ${message}`);
+      }
+
+      function displaySuccess(message) {
+        alert(`Success: ${message}`);
+      }
+
+      // Function to handle API requests with Basic Auth
+      async function handleRequest(url, options) {
+        try {
+          const response = await fetch(url, options);
+          const data = await response.json();
+          if (response.status === 401) {
+            displayError("Unauthorized. Please check your credentials.");
+            throw new Error("Unauthorized");
+          }
+          if (!response.ok) {
+            throw new Error(data.error || "Unknown error occurred");
+          }
+          return data;
+        } catch (error) {
+          displayError(error.message);
+          throw error; // Re-throw to allow further handling if needed
+        }
+      }
+
+      // Handle login
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const username = document.getElementById("username").value;
+          const password = document.getElementById("password").value;
+
+          // Store credentials in session storage
+          sessionStorage.setItem(
+            "credentials",
+            btoa(`${username}:${password}`)
+          );
+          displaySuccess("Creds set successfully");
+          document.getElementById("authSection").style.display = "none";
+          listProductKeys();
+        });
+
+      // Handle logout
+      document.getElementById("logoutButton").addEventListener("click", () => {
+        sessionStorage.removeItem("credentials");
+        displaySuccess("Logged out");
+        document.getElementById("authSection").style.display = "block";
+        document.getElementById("productKeysList").innerHTML = "";
+      });
+
+      // Handle add product key
+      document
+        .getElementById("addProductKeyForm")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const key = document.getElementById("productKey").value;
+          const maxActivations =
+            document.getElementById("maxActivations").value;
+          const expiryDays = document.getElementById("expiryDays").value;
+
+          try {
+            await handleRequest(
+              "/product-keys",
+              getFetchOptions("POST", { key, maxActivations, expiryDays })
+            );
+            displaySuccess("Product key added successfully");
+            listProductKeys();
+          } catch (error) {
+            // Error handling already handled in handleRequest
+          }
+        });
+
+      // Handle update product key
+      document
+        .getElementById("updateProductKeyForm")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const key = document.getElementById("updateProductKey").value;
+          const maxActivations = document.getElementById(
+            "updateMaxActivations"
+          ).value;
+          const expiryDays = document.getElementById("updateExpiryDays").value;
+
+          const updateData = {};
+          if (maxActivations) updateData.maxActivations = maxActivations;
+          if (expiryDays) updateData.expiryDays = expiryDays;
+
+          try {
+            await handleRequest(
+              `/product-keys/${key}`,
+              getFetchOptions("PUT", updateData)
+            );
+            displaySuccess("Product key updated successfully");
+            listProductKeys();
+          } catch (error) {
+            // Error handling already handled in handleRequest
+          }
+        });
+
+      // Handle validate product key
+      document
+        .getElementById("validateProductKeyForm")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const key = document.getElementById("validateProductKey").value;
+          const installationId =
+            document.getElementById("installationId").value;
+
+          try {
+            const result = await handleRequest(
+              `/product-keys/validate`,
+              getFetchOptions("POST", { key, installationId })
+            );
+            if (result.valid) {
+              displaySuccess("Product key is valid.");
+            } else {
+              displayError("Product key is invalid.");
+            }
+          } catch (error) {
+            // Error handling already handled in handleRequest
+          }
+        });
+
+      // Function to modify fetch options to include credentials
+      function getFetchOptions(method, body) {
+        const credentials = sessionStorage.getItem("credentials");
+        const headers = {
+          "Content-Type": "application/json",
+        };
+        if (credentials) {
+          headers["Authorization"] = "Basic " + credentials;
+        }
+        return {
+          method,
+          headers,
+          body: JSON.stringify(body),
+        };
+      }
+
+      // List product keys with activation deletion options
+      async function listProductKeys() {
+        try {
+          const keys = await handleRequest(
+            "/product-keys",
+            getFetchOptions("GET")
+          );
+          const listElement = document.getElementById("productKeysList");
+          listElement.innerHTML = "";
+
+          keys.forEach((key) => {
+            const row = document.createElement("tr");
+            const activationCells = Object.keys(key.activations)
+              .map(
+                (id) =>
+                  `<span>${id}</span> <button class="actions-button" onclick="deleteActivation('${key.key}', '${id}')">Delete</button>`
+              )
+              .join("<br/>");
+
+            row.innerHTML = `
+                        <td>${key.key}</td>
+                        <td>${key.maxActivations}</td>
+                        <td>${new Date(key.expiryDate).toString()}</td>
+                        <td>${activationCells}</td>
+                        <td>
+                            <button class="actions-button" onclick="deleteProductKey('${
+                              key.key
+                            }')">Delete Key</button>
+                        </td>
+                    `;
+            listElement.appendChild(row);
+          });
+        } catch (error) {
+          // Error handling already handled in handleRequest
+        }
+      }
+
+      async function deleteProductKey(key) {
+        try {
+          await handleRequest(
+            `/product-keys/${key}`,
+            getFetchOptions("DELETE")
+          );
+          displaySuccess("Product key deleted");
+          listProductKeys();
+        } catch (error) {
+          // Error handling already handled in handleRequest
+        }
+      }
+
+      async function deleteActivation(key, installationId) {
+        try {
+          await handleRequest(
+            `/product-keys/${key}/activations/${installationId}`,
+            getFetchOptions("DELETE")
+          );
+          displaySuccess("Activation deleted");
+          listProductKeys();
+        } catch (error) {
+          // Error handling already handled in handleRequest
+        }
+      }
+
+      // Initial load
+      document.getElementById("authSection").style.display = "block";
+    </script>
+  </body>
+</html>

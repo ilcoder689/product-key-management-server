@@ -8,261 +8,292 @@
       body {
         font-family: Arial, sans-serif;
         margin: 20px;
+        background-color: #f8f9fa;
+        color: #343a40;
       }
-      h1 {
-        color: #333;
+      h1,
+      h2 {
+        color: #007bff;
+      }
+      .container {
+        max-width: 95%;
+        margin: auto;
+        padding: 20px;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       }
       form {
         margin-bottom: 20px;
       }
+      label {
+        font-weight: bold;
+        display: block;
+        margin-top: 10px;
+      }
       input,
+      button,
+      select {
+        padding: 10px;
+        margin: 5px 0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        width: 100%;
+        box-sizing: border-box;
+      }
       button {
-        padding: 8px 12px;
-        margin: 4px;
+        display: block;
+        padding-left: 20px;
+        padding-right: 20px;
+        max-width: fit-content;
+        margin-left: auto;
+        margin-right: auto;
+        background-color: #007bff;
+        color: white;
+        cursor: pointer;
+        border: none;
+      }
+      button:hover {
+        background-color: #0056b3;
       }
       table {
         width: 100%;
         border-collapse: collapse;
         margin-top: 20px;
+        font-size: 14px;
       }
       th,
       td {
         border: 1px solid #ddd;
-        padding: 8px;
+        padding: 10px;
+        text-align: left;
       }
       th {
-        background-color: #f4f4f4;
+        background-color: #007bff;
+        color: white;
       }
       tr:nth-child(even) {
         background-color: #f9f9f9;
       }
       .actions-button {
-        cursor: pointer;
         color: #007bff;
+        display: inline-block;
         background: none;
         border: none;
         padding: 0;
         font: inherit;
+        cursor: pointer;
       }
-      .error-message {
-        color: red;
-        font-weight: bold;
+      .actions-button:hover {
+        text-decoration: underline;
       }
-      .success-message {
-        color: green;
-        font-weight: bold;
+      .modal {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1000;
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+      }
+      .modal.active,
+      .modal-overlay.active {
+        display: block;
+      }
+      .toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background-color: #343a40;
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 5px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.3s, transform 0.3s;
+        z-index: 1000;
+      }
+      .toast.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .toast.error {
+        background-color: #dc3545;
+      }
+      .toast.success {
+        background-color: #28a745;
       }
     </style>
   </head>
   <body>
-    <h1>Product Key Management</h1>
+    <div class="container">
+      <h1>Product Key Management</h1>
 
-    <div id="authSection">
-      <h2>Login</h2>
-      <form id="loginForm">
-        <input type="text" id="username" placeholder="Username" required />
-        <input type="password" id="password" placeholder="Password" required />
-        <button type="submit">Login</button>
-      </form>
+      <div id="authSection">
+        <h2>Login</h2>
+        <form id="loginForm">
+          <label for="username">Username</label>
+          <input
+            type="text"
+            id="username"
+            placeholder="Enter your username"
+            required
+          />
+
+          <label for="password">Password</label>
+          <input
+            type="password"
+            id="password"
+            placeholder="Enter your password"
+            required
+          />
+
+          <button type="submit">Login</button>
+        </form>
+      </div>
+      <button id="logoutButton" style="display: none">Logout</button>
+
+      <div id="messageContainer"></div>
+
+      <div id="managementSection" style="display: none">
+        <h2>Add Product Keys</h2>
+        <form id="addProductKeyForm">
+          <label for="productKey">Product Key</label>
+          <input
+            type="text"
+            id="productKey"
+            placeholder="Enter product key"
+            required
+          />
+
+          <label for="maxActivations">Max Activations</label>
+          <input
+            type="number"
+            id="maxActivations"
+            placeholder="Enter max activations"
+            required
+          />
+
+          <label for="startDate">Start Date</label>
+          <input
+            type="datetime-local"
+            id="startDate"
+            placeholder="Start Date"
+            required
+          />
+
+          <label for="expiryDate">Expiry Date</label>
+          <input
+            type="datetime-local"
+            id="expiryDate"
+            placeholder="Expiry Date"
+            required
+          />
+          <button type="submit">Add Product Key</button>
+        </form>
+
+        <h2>Update Product Keys</h2>
+        <form id="updateProductKeyForm">
+          <label for="updateProductKey">Product Key</label>
+          <input
+            type="text"
+            id="updateProductKey"
+            placeholder="Enter product key to update"
+            required
+          />
+
+          <label for="updateMaxActivations">Max Activations</label>
+          <input
+            type="number"
+            id="updateMaxActivations"
+            placeholder="Enter new max activations"
+          />
+
+          <label for="updateStartDate">Start Date</label>
+          <input
+            type="datetime-local"
+            id="updateStartDate"
+            placeholder="Start Date"
+          />
+
+          <label for="updateExpiryDate">Expiry Date</label>
+          <input
+            type="datetime-local"
+            id="updateExpiryDate"
+            placeholder="Expiry Date"
+          />
+          <button type="submit">Update Product Key</button>
+        </form>
+
+        <h2>Product Keys List</h2>
+        <button id="listKeysButton" onclick="listProductKeys(true)">
+          Refresh List
+        </button>
+        <table>
+          <thead>
+            <tr>
+              <th>Product Key</th>
+              <th>Max</th>
+              <th>Start Date</th>
+              <th>Expiry Date</th>
+              <th>Activation Date</th>
+              <th>Activations</th>
+              <th>Users</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="productKeysList">
+            <!-- Dynamic rows go here -->
+          </tbody>
+        </table>
+      </div>
     </div>
-    <button id="logoutButton">Logout</button>
 
-    <div id="messageContainer"></div>
+    <!-- Modal for Adding/Removing Users -->
+    <div class="modal-overlay" id="modalOverlay"></div>
+    <div class="modal" id="userModal">
+      <h2>Manage Users for Product Key</h2>
+      <form id="userManagementForm">
+        <input type="text" id="userId" placeholder="User ID" required />
+        <button type="submit">Add User</button>
+      </form>
+      <ul id="userList"></ul>
+      <button id="closeModalButton">Close</button>
+    </div>
 
-    <!-- Forms for managing product keys -->
-    <h2>Manage Product Keys</h2>
-    <form id="addProductKeyForm">
-      <input type="text" id="productKey" placeholder="Product Key" required />
-      <input
-        type="number"
-        id="maxActivations"
-        placeholder="Max Activations"
-        required
-      />
-      <input type="number" id="expiryDays" placeholder="Expiry Days" required />
-      <button type="submit">Add Product Key</button>
-    </form>
-
-    <form id="updateProductKeyForm">
-      <input
-        type="text"
-        id="updateProductKey"
-        placeholder="Product Key"
-        required
-      />
-      <input
-        type="number"
-        id="updateMaxActivations"
-        placeholder="Max Activations"
-      />
-      <input type="number" id="updateExpiryDays" placeholder="Expiry Days" />
-      <button type="submit">Update Product Key</button>
-    </form>
-
-    <form id="validateProductKeyForm">
-      <input
-        type="text"
-        id="validateProductKey"
-        placeholder="Product Key"
-        required
-      />
-      <input
-        type="text"
-        id="installationId"
-        placeholder="Installation ID"
-        required
-      />
-      <button type="submit">Validate Product Key</button>
-    </form>
-
-    <h2>Product Keys List</h2>
-    <button id="listKeysButton" onclick="listProductKeys()">
-      Refresh List
-    </button>
-    <table id="productKeysTable">
-      <thead>
-        <tr>
-          <th>Product Key</th>
-          <th>Max Activations</th>
-          <th>Expiry Date</th>
-          <th>Activations</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="productKeysList">
-        <!-- Data will be inserted here by JavaScript -->
-      </tbody>
-    </table>
+    <div id="toast" class="toast"></div>
 
     <script>
-      // Utility function to handle errors and alerts
-      function displayError(message) {
-        alert(`Error: ${message}`);
+      const authSection = document.getElementById("authSection");
+      const managementSection = document.getElementById("managementSection");
+      const logoutButton = document.getElementById("logoutButton");
+      const modalOverlay = document.getElementById("modalOverlay");
+      const userModal = document.getElementById("userModal");
+      const closeModalButton = document.getElementById("closeModalButton");
+      const toast = document.getElementById("toast");
+
+      function displayMessage(message, isError = false) {
+        toast.textContent = message;
+        toast.className = `toast show ${isError ? "error" : "success"}`;
+        setTimeout(() => {
+          toast.className = "toast";
+        }, 3000);
       }
 
-      function displaySuccess(message) {
-        alert(`Success: ${message}`);
-      }
-
-      // Function to handle API requests with Basic Auth
-      async function handleRequest(url, options) {
-        try {
-          const response = await fetch(url, options);
-          const data = await response.json();
-          if (response.status === 401) {
-            displayError("Unauthorized. Please check your credentials.");
-            throw new Error("Unauthorized");
-          }
-          if (!response.ok) {
-            throw new Error(data.error || "Unknown error occurred");
-          }
-          return data;
-        } catch (error) {
-          displayError(error.message);
-          throw error; // Re-throw to allow further handling if needed
-        }
-      }
-
-      // Handle login
-      document
-        .getElementById("loginForm")
-        .addEventListener("submit", async (event) => {
-          event.preventDefault();
-          const username = document.getElementById("username").value;
-          const password = document.getElementById("password").value;
-
-          // Store credentials in session storage
-          sessionStorage.setItem(
-            "credentials",
-            btoa(`${username}:${password}`)
-          );
-          displaySuccess("Logged in");
-          document.getElementById("authSection").style.display = "none";
-          listProductKeys();
-        });
-
-      // Handle logout
-      document.getElementById("logoutButton").addEventListener("click", () => {
-        sessionStorage.removeItem("credentials");
-        displaySuccess("Logged out");
-        document.getElementById("authSection").style.display = "block";
-        document.getElementById("productKeysList").innerHTML = "";
-      });
-
-      // Handle add product key
-      document
-        .getElementById("addProductKeyForm")
-        .addEventListener("submit", async (event) => {
-          event.preventDefault();
-          const key = document.getElementById("productKey").value;
-          const maxActivations =
-            document.getElementById("maxActivations").value;
-          const expiryDays = document.getElementById("expiryDays").value;
-
-          try {
-            await handleRequest(
-              "/product-keys",
-              getFetchOptions("POST", { key, maxActivations, expiryDays })
-            );
-            displaySuccess("Product key added successfully");
-            listProductKeys();
-          } catch (error) {
-            // Error handling already handled in handleRequest
-          }
-        });
-
-      // Handle update product key
-      document
-        .getElementById("updateProductKeyForm")
-        .addEventListener("submit", async (event) => {
-          event.preventDefault();
-          const key = document.getElementById("updateProductKey").value;
-          const maxActivations = document.getElementById(
-            "updateMaxActivations"
-          ).value;
-          const expiryDays = document.getElementById("updateExpiryDays").value;
-
-          const updateData = {};
-          if (maxActivations) updateData.maxActivations = maxActivations;
-          if (expiryDays) updateData.expiryDays = expiryDays;
-
-          try {
-            await handleRequest(
-              `/product-keys/${key}`,
-              getFetchOptions("PUT", updateData)
-            );
-            displaySuccess("Product key updated successfully");
-            listProductKeys();
-          } catch (error) {
-            // Error handling already handled in handleRequest
-          }
-        });
-
-      // Handle validate product key
-      document
-        .getElementById("validateProductKeyForm")
-        .addEventListener("submit", async (event) => {
-          event.preventDefault();
-          const key = document.getElementById("validateProductKey").value;
-          const installationId =
-            document.getElementById("installationId").value;
-
-          try {
-            const result = await handleRequest(
-              `/product-keys/validate`,
-              getFetchOptions("POST", { key, installationId })
-            );
-            if (result.valid) {
-              displaySuccess("Product key is valid.");
-            } else {
-              displayError("Product key is invalid.");
-            }
-          } catch (error) {
-            // Error handling already handled in handleRequest
-          }
-        });
-
-      // Function to modify fetch options to include credentials
       function getFetchOptions(method, body) {
         const credentials = sessionStorage.getItem("credentials");
         const headers = {
@@ -274,12 +305,98 @@
         return {
           method,
           headers,
-          body: JSON.stringify(body),
+          body: body ? JSON.stringify(body) : undefined,
         };
       }
 
-      // List product keys with activation deletion options
-      async function listProductKeys() {
+      async function handleRequest(url, options) {
+        try {
+          const response = await fetch(url, options);
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || "Unknown error occurred");
+          }
+          return await response.json();
+        } catch (error) {
+          displayMessage(error.message, true);
+          throw error;
+        }
+      }
+
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const username = document.getElementById("username").value;
+          const password = document.getElementById("password").value;
+          sessionStorage.setItem(
+            "credentials",
+            btoa(`${username}:${password}`)
+          );
+          displayMessage("Logged in successfully");
+          authSection.style.display = "none";
+          managementSection.style.display = "block";
+          logoutButton.style.display = "block";
+          listProductKeys();
+        });
+
+      logoutButton.addEventListener("click", () => {
+        sessionStorage.removeItem("credentials");
+        displayMessage("Logged out successfully");
+        authSection.style.display = "block";
+        managementSection.style.display = "none";
+        logoutButton.style.display = "none";
+      });
+
+      document
+        .getElementById("addProductKeyForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const key = document.getElementById("productKey").value;
+          const maxActivations =
+            document.getElementById("maxActivations").value;
+          const expiryDate = document.getElementById("expiryDate").value;
+          const startDate = document.getElementById("startDate").value;
+          try {
+            await handleRequest(
+              "/product-keys",
+              getFetchOptions("POST", {
+                key,
+                maxActivations,
+                startDate,
+                expiryDate,
+              })
+            );
+            displayMessage("Product key added successfully");
+            listProductKeys();
+          } catch {}
+        });
+
+      document
+        .getElementById("updateProductKeyForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const key = document.getElementById("updateProductKey").value;
+          const maxActivations = document.getElementById(
+            "updateMaxActivations"
+          ).value;
+          const startDate = document.getElementById("updateStartDate").value;
+          const expiryDate = document.getElementById("updateExpiryDate").value;
+          const updateData = {};
+          if (maxActivations) updateData.maxActivations = maxActivations;
+          if (startDate) updateData.startDate = startDate;
+          if (expiryDate) updateData.expiryDate = expiryDate;
+          try {
+            await handleRequest(
+              `/product-keys/${key}`,
+              getFetchOptions("PUT", updateData)
+            );
+            displayMessage("Product key updated successfully");
+            listProductKeys();
+          } catch {}
+        });
+
+      async function listProductKeys(showToast = false) {
         try {
           const keys = await handleRequest(
             "/product-keys",
@@ -287,32 +404,53 @@
           );
           const listElement = document.getElementById("productKeysList");
           listElement.innerHTML = "";
+          console.log(keys);
 
           keys.forEach((key) => {
+            console.log("Key = ", key);
+
             const row = document.createElement("tr");
-            const activationCells = Object.keys(key.activations)
+            const activationCells = Object.keys(key.activations || {})
               .map(
                 (id) =>
-                  `<span>${id}</span> <button class="actions-button" onclick="deleteActivation('${key.key}', '${id}')">Delete</button>`
+                  `<span>${id}</span> <button class="actions-button" onclick="deleteActivation('${key.product_key}', '${id}')">&#x2718;</button>`
+              )
+              .join("<br/>");
+
+            const userCells = (key.users || [])
+              .map(
+                (user) =>
+                  `<span>${user}</span> <button class="actions-button" onclick="removeUser('${key.product_key}', '${user}')">&#x2718;</button>`
               )
               .join("<br/>");
 
             row.innerHTML = `
-                        <td>${key.key}</td>
-                        <td>${key.maxActivations}</td>
-                        <td>${new Date(key.expiryDate).toString()}</td>
-                        <td>${activationCells}</td>
-                        <td>
-                            <button class="actions-button" onclick="deleteProductKey('${
-                              key.key
-                            }')">Delete Key</button>
-                        </td>
-                    `;
+              <td>${key.product_key}</td>
+              <td>${key.max_activations}</td>
+              <td>${timestampToDateTime(key.start_date)}</td>
+              <td>${timestampToDateTime(key.expiry_date)}</td>
+              <td>${
+                key.activation_date
+                  ? timestampToDateTime(key.activation_date)
+                  : "NA"
+              }</td>
+              <td>${activationCells || "None"}</td>
+              <td>${userCells || "None"}</td>
+              <td>
+                <button class="actions-button" onclick="openUserModal('${
+                  key.product_key
+                }')">Manage Users</button> <br/>
+                <button class="actions-button" onclick="deleteProductKey('${
+                  key.product_key
+                }')">Delete Key</button>
+              </td>
+            `;
+            console.log("Row = ", row);
+
             listElement.appendChild(row);
+            if (showToast) displayMessage("List refreshed Success");
           });
-        } catch (error) {
-          // Error handling already handled in handleRequest
-        }
+        } catch {}
       }
 
       async function deleteProductKey(key) {
@@ -321,28 +459,144 @@
             `/product-keys/${key}`,
             getFetchOptions("DELETE")
           );
-          displaySuccess("Product key deleted");
+          displayMessage("Product key deleted successfully");
           listProductKeys();
-        } catch (error) {
-          // Error handling already handled in handleRequest
-        }
+        } catch {}
       }
 
-      async function deleteActivation(key, installationId) {
+      async function deleteActivation(key, activationId) {
         try {
           await handleRequest(
-            `/product-keys/${key}/activations/${installationId}`,
+            `/product-keys/${key}/activations/${activationId}`,
             getFetchOptions("DELETE")
           );
-          displaySuccess("Activation deleted");
+          displayMessage("Activation deleted successfully");
           listProductKeys();
-        } catch (error) {
-          // Error handling already handled in handleRequest
-        }
+        } catch {}
       }
 
+      async function removeUser(key, userId) {
+        try {
+          await handleRequest(
+            `/product-keys/${key}/users/${userId}`,
+            getFetchOptions("DELETE")
+          );
+          displayMessage("User deleted successfully");
+          listProductKeys();
+        } catch {}
+      }
+
+      document
+        .getElementById("userManagementForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const userId = document.getElementById("userId").value;
+          const productKey = e.target.dataset.productKey;
+          try {
+            await handleRequest(
+              `/product-keys/${productKey}/users`,
+              getFetchOptions("POST", { userId })
+            );
+            displayMessage("User added successfully");
+            listProductKeys();
+            closeModal();
+          } catch {}
+        });
+
+      function openUserModal(productKey) {
+        userModal.classList.add("active");
+        modalOverlay.classList.add("active");
+        document.getElementById("userManagementForm").dataset.productKey =
+          productKey;
+      }
+
+      function closeModal() {
+        userModal.classList.remove("active");
+        modalOverlay.classList.remove("active");
+      }
+
+      closeModalButton.addEventListener("click", closeModal);
+      modalOverlay.addEventListener("click", closeModal);
+
       // Initial load
-      document.getElementById("authSection").style.display = "block";
+      if (sessionStorage.getItem("credentials")) {
+        authSection.style.display = "none";
+        managementSection.style.display = "block";
+        logoutButton.style.display = "block";
+        logoutButton.style.marginRight = "0";
+        listProductKeys();
+      } else {
+        authSection.style.display = "block";
+      }
+
+      function timestampToUtc(ts) {
+        let [yyyy, mm, dd, hh, m, s] = ts.split(/[^\d]+/);
+        let date = new Date();
+        date.setUTCFullYear(+yyyy);
+        date.setUTCMonth(mm - 1);
+        date.setUTCDate(+dd);
+        date.setUTCHours(+hh);
+        date.setUTCMinutes(+m);
+        date.setUTCSeconds(+s);
+        return date;
+      }
+
+      function utcToDateString(date) {
+        const addZero = (i) => {
+          if (i < 10) {
+            i = "0" + i;
+          }
+          return i;
+        };
+
+        let day = addZero(date.getDate());
+        let month = addZero(date.getMonth() + 1);
+        let year = addZero(date.getFullYear());
+
+        return year + "-" + month + "-" + day;
+      }
+
+      function utcToTimeString(date) {
+        const addZero = (i) => {
+          if (i < 10) {
+            i = "0" + i;
+          }
+          return i;
+        };
+
+        let hours = date.getHours();
+        let minutes = addZero(date.getMinutes());
+        let seconds = addZero(date.getSeconds());
+        let amPm = "AM";
+        if (hours == 0) {
+          hours = 12;
+          amPm = "AM";
+        } else if (hours == 12) {
+          hours = 12;
+          amPm = "PM";
+        } else if (hours > 12) {
+          amPm = "PM";
+          hours = hours - 12;
+        } else {
+          amPm = "AM";
+        }
+
+        hours = addZero(hours);
+
+        return hours + ":" + minutes + ":" + seconds + " " + amPm;
+      }
+
+      function timestampToDateTime(ts) {
+        return `${timestampToDate(ts)} ${timestampToTime(ts)}`;
+      }
+
+      function timestampToDate(ts) {
+        return utcToDateString(timestampToUtc(ts));
+      }
+
+      function timestampToTime(ts) {
+        return utcToTimeString(timestampToUtc(ts));
+      }
     </script>
   </body>
 </html>
