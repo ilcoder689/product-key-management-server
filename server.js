@@ -21,7 +21,7 @@ const mysqlConfig = {
   database: process.env.MYSQL_DB || "ases_pkms",
   timezone: "+00:00",
 };
-const user = process.env.USER || "admin";
+const user = process.env.USERNAME || "admin";
 const pass = process.env.PASSWORD || "admin";
 
 let db;
@@ -377,7 +377,7 @@ app.delete(
   }
 );
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3005;
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
 });

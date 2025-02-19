@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # URL to check
-URL="http://localhost:3000"
+URL="http://localhost:3005"
 
 # Command to start the Node.js server
 START_SERVER_COMMAND="npm start"
@@ -17,12 +17,12 @@ HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}\n" --max-time $TIMEOUT $URL)
 
 # If the status code is not 200, start the server
 if [ "$HTTP_STATUS" -ne 200 ]; then
-    echo "localhost:3000 is not accessible. Starting the Node.js server."
+    echo $URL . " is not accessible. Starting the Node.js server."
     source /home/u486613842/.profile >/dev/null
     cd $PROJECT_DIR
     nohup $START_SERVER_COMMAND &
 else
-    echo "localhost:3000 is accessible."
+    echo $URL . " is accessible."
 fi
 
 # Cron Job Command

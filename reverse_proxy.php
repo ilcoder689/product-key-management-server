@@ -1,7 +1,7 @@
 <?php
 
 // Set the target base URL
-$targetBaseUrl = 'http://localhost:3000';
+$targetBaseUrl = 'http://localhost:3005';
 
 // Get request details
 $method = $_SERVER['REQUEST_METHOD'];
@@ -71,5 +71,3 @@ foreach (explode("\r\n", $responseHeaders) as $headerLine) {
 
 // Send the response body back to the client
 echo $responseBody;
-
-?>
